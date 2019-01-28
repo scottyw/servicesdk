@@ -3,14 +3,15 @@ package service_test
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/lyraproj/puppet-evaluator/eval"
 	"github.com/lyraproj/puppet-evaluator/serialization"
 	"github.com/lyraproj/puppet-evaluator/types"
 	"github.com/lyraproj/servicesdk/annotation"
 	"github.com/lyraproj/servicesdk/service"
 	"github.com/lyraproj/servicesdk/wfapi"
-	"os"
-	"time"
 
 	// Initialize pcore
 	_ "github.com/lyraproj/puppet-evaluator/pcore"
@@ -440,4 +441,42 @@ func ExampleServer_Metadata_api() {
 	//   }
 	// )
 	//
+}
+
+// MyResHandler creates, reads and deletes the MyRes Resource
+type MyResHandler struct{}
+
+// Create ...
+func (h *MyResHandler) Create(desired *map[string]interface{}) (*map[string]interface{}, string, error) {
+	return nil, "", nil
+}
+
+// Read ...
+func (h *MyResHandler) Read(externalID string) (*map[string]interface{}, error) {
+	return nil, nil
+}
+
+// Delete ...
+func (h *MyResHandler) Delete(externalID string) error {
+	return nil
+}
+
+func ExampleServer_Invoke_handler() {
+	eval.Puppet.Do(func(c eval.Context) {
+
+		api := `My::TheApi`
+		sb := service.NewServerBuilder(c, `My::Service`)
+		evs := sb.RegisterTypes("My", MyRes{})
+		sb.RegisterHandler(api, &MyResHandler{}, evs[0])
+		s := sb.Server()
+
+		var myResValue eval.Value
+		// Somehow myResValue is created with suitable data in it
+		fmt.Println(s.Invoke(c, api, `create`, myResValue))
+
+	})
+
+	// Output:
+	// first
+	// second place
 }
